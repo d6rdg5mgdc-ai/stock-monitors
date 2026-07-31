@@ -1,0 +1,33 @@
+name: 每日更新估值数据
+
+on:
+  schedule:
+    # 北京时间 15:30 (UTC 07:30) 周一至周五
+    - cron: '30 7 * * 1-5'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: |
+          pip install akshare baostock pandas numpy curl_cffi
+
+      - name: 抓取数据
+        run: python fetch_data.py
+
+      - name: 推送更新
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add index.html
+          git diff --staged --quiet || (git commit -m "🔄 自动更新 $(date +'%m-%d %H:%M')" && git push)
