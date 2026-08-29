@@ -1,0 +1,27 @@
+name: 每日估值推送
+
+on:
+  schedule:
+    # 北京时间 17:50 = UTC 09:50，周一至周五
+    - cron: '50 9 * * 1-5'
+  workflow_dispatch: {}
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install curl_cffi baostock pandas numpy
+
+      - name: 运行推送
+        run: python push_wechat.py
+        env:
+          SENDKEY: ${{ secrets.SENDKEY }}
